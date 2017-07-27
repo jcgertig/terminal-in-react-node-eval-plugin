@@ -1,0 +1,54 @@
+{
+  "name": "terminal-in-react-node-eval-plugin",
+  "version": "1.0.0",
+  "description": "Plugin to add node evaluation and repl to terminal-in-react",
+  "main": "lib/index.js",
+  "scripts": {
+    "lint": "eslint /src",
+    "compile": "babel src/ --out-dir lib",
+    "prepublish": "npm run lint && npm run compile"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jcgertig/terminal-in-react-node-eval-plugin.git"
+  },
+  "keywords": [
+    "terminal-in-react",
+    "plugin",
+    "node",
+    "js",
+    "eval",
+    "repl"
+  ],
+  "author": "jcgertig <jcgertig@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jcgertig/terminal-in-react-node-eval-plugin/issues"
+  },
+  "homepage": "https://github.com/jcgertig/terminal-in-react-node-eval-plugin#readme",
+  "peerDependencies": {
+    "react": "^15.6.1"
+  },
+  "dependencies": {
+    "terminal-in-react": "^3.4.0",
+    "core-decorators": "^0.19.0",
+    "memoizerific": "^1.11.2"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-eslint": "^7.2.3",
+    "babel-loader": "^7.1.1",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-plugin-transform-es2015-modules-umd": "^6.24.1",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "eslint": "^4.1.1",
+    "eslint-config-airbnb": "^15.0.2",
+    "eslint-import-resolver-webpack": "^0.8.3",
+    "eslint-plugin-babel": "^4.1.1",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-jsx-a11y": "^5.1.1",
+    "eslint-plugin-react": "^7.1.0"
+  }
+}
