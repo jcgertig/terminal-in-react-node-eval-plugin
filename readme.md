@@ -9,6 +9,10 @@
 
 __Plugin to add node evaluation and repl to terminal-in-react__
 
+<p align="center">
+  <img src="http://g.recordit.co/9eWglWTCQs.gif" />
+</p>
+
 # Install
 
 ```bash
