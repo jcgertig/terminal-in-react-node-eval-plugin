@@ -1,16 +1,28 @@
-import React from 'react'; // eslint-disable-line
-import { PluginBase } from 'terminal-in-react'; // eslint-disable-line
+import PluginBase from 'terminal-in-react/lib/js/components/Plugin';
 import { autobind } from 'core-decorators';
 // import memoize from 'memoizerific';
 
 // Scope class
 //   aScope.eval(str) -- eval a string within the scope
 //   aScope.newNames(name...) - adds vars to the scope
-function Scope() {
+function Scope(print) { // eslint-disable-line no-unused-vars
   "use strict"; // eslint-disable-line
   this.names = [];
+  this.evaled = [];
   this.eval = function ev(s) {
-    return eval(s);  // eslint-disable-line
+    const toEval = [
+      'console.log = function () {};',
+      ...this.evaled,
+      '(function(){',
+      'if (true) { console.log = print; }',
+      `print((() => eval("${s}"))())`,
+      '})()',
+    ].join(';\n');
+    this.evaled = [...this.evaled, s];
+    return eval(toEval);  // eslint-disable-line
+  };
+  this.removeLast = function rl() {
+    this.evaled.pop();
   };
 }
 
@@ -53,29 +65,67 @@ export default class NodeEval extends PluginBase {
   getPublicMethods = () => ({
     node: (content) => {
       "use strict"; // eslint-disable-line
-      const scope = new Scope();
+      const scope = new Scope(() => {});
       this.runEval(scope, content);
     },
-  })
+  });
+
+  handleLog = (...args) => {
+    this.api.printLine(args);
+  };
 
   // @decorate(memoize(500))
   runEval(scope, content) { // eslint-disable-line class-methods-use-this
-    function run(errCb) {
+    function run() {
       "use strict"; // eslint-disable-line
       try {
-        scope.eval(content); // eslint-disable-line
+        return Promise.resolve(scope.eval(content)); // eslint-disable-line
       } catch (e) {
-        errCb(e);
+        scope.removeLast();
+        return Promise.reject(e);
       }
     }
-    run((err) => {
-      this.api.printLine(`Error: ${err.message}`);
-      // this.api.printLine(<pre>{JSON.stringify(err, null, 2)}</pre>);
-    });
+    return run()
+      .catch((err) => {
+        this.api.printLine(`Error: ${err.message}`);
+      });
+  }
+
+  stopControl() {
+    if (this.stopFirst === true) {
+      this.api.releaseControl();
+    } else {
+      this.stopFirst = true;
+      this.api.printLine('(To exit, press ^C again or type .exit)');
+    }
+  }
+
+  takeControl() {
+    "use strict"; // eslint-disable-line
+    const scope = new Scope(this.handleLog);
+    this.api.takeControl({
+      shortcuts: {
+        'win, linux, darwin': {
+          'ctrl + c': this.stopControl,
+        },
+      },
+      runCommand: (inputText) => {
+        if (this.stopFirst === true && inputText === '.exit') {
+          this.api.releaseControl();
+        } else {
+          this.stopFirst = false;
+          this.runEval.bind(this)(scope, inputText)
+            .then((res) => {
+              this.api.printLine(typeof res !== 'function' ? res : res());
+            });
+        }
+      },
+    }, '>', '');
   }
 
   runEvalCommand() {
     return {
+      needsInstance: true,
       method: (args) => {
         this.parsePath = this.api.getPluginMethod(this.config.filesystem, 'parsePath');
         this.readFile = this.api.getPluginMethod(this.config.filesystem, 'readFile');
@@ -84,9 +134,13 @@ export default class NodeEval extends PluginBase {
           const file = this.readFile(path);
           if (file !== null && typeof file === 'string') {
             "use strict"; // eslint-disable-line
-            const scope = new Scope();
+            const scope = new Scope(() => {});
             this.runEval.bind(this)(scope, file);
           }
+        } else if (this.api.checkVersion('>=', '4.3.0')) {
+          this.takeControl();
+        } else {
+          this.api.printLine('Node repl only works in Terminal versions above 4.2.X');
         }
       },
     };

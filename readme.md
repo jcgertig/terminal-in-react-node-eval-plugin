@@ -61,7 +61,7 @@ The methods available to other plugins
 # TODO
 
  - [x] Eval files
- - [ ] Node repl
+ - [x] Node repl
  - [ ] Eval node requires
  - [ ] Run as process (web workers)
 
